@@ -1,7 +1,8 @@
-package de.derflash.plugins;
+package de.derflash.plugins.cnvote.model;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -11,10 +12,6 @@ import org.bukkit.entity.Player;
 
 import com.avaje.ebean.validation.NotNull;
 
-/**
- *
- * @author DerFlash
- */
 @Entity()
 @Table(name = "cn_votes")
 public class Vote {
@@ -27,11 +24,13 @@ public class Vote {
 
     @NotNull
     private Date time;
-    
+
+    @Column
     private String serviceName;
-    
+
+    @Column
     private String ip;
-    
+
     public void setId(int id) {
         this.id = id;
     }
@@ -56,13 +55,13 @@ public class Vote {
         this.playerName = player.getName();
     }
 
-	public Date getTime() {
-		return time;
-	}
+    public Date getTime() {
+        return time;
+    }
 
-	public void setTime(Date time) {
-		this.time = time;
-	}
+    public void setTime(Date time) {
+        this.time = time;
+    }
 
     public String getServiceName() {
         return serviceName;
@@ -79,7 +78,4 @@ public class Vote {
     public void setIp(String ip) {
         this.ip = ip;
     }
-
-
-
 }

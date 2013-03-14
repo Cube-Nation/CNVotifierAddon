@@ -1,14 +1,23 @@
 author: DerFlash
 database: true
 description: CNVotifierAddon
-main: de.derflash.plugins.CNVotifierAddon
+main: de.derflash.plugins.cnvote.CNVotifierAddon
 name: CNVotifierAddon
 startup: postworld
 url: http://www.cube-nation.de/
 version: '${project.version}'
-depend: [Votifier]
-softdepend: [Vault]
+
+depend:
+  - Votifier
+softdepend:
+  - Vault
+  - PermissionsEx
+
 commands:
     cnvote:
         description: Test vote
         usage: /cnvote test
+
+permissions:
+  cnvotifieraddon.admin:
+    description: ...
