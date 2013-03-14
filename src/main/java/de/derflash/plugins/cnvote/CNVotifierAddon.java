@@ -51,19 +51,22 @@ public class CNVotifierAddon extends JavaPlugin {
         new VoteEventListener(this);
         new PluginPlayerListener(this);
 
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+        Thread voteSaverThread = new Thread("VoteSaver") {
             @Override
             public void run() {
                 saveVotes();
             }
-        }, 12000L, 12000L);
-
-        getServer().getScheduler().runTaskTimer(this, new Runnable() {
+        };
+        Thread lastVoteCleanerThread = new Thread("LastVoteCleaner") {
             @Override
             public void run() {
                 cleanLastVotes();
             }
-        }, 20 * 60, 20 * 60); // every minute
+        };
+
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, voteSaverThread, 12000L, 12000L);
+        getServer().getScheduler().runTaskTimer(this, lastVoteCleanerThread, 20 * 60, 20 * 60); // every
+                                                                                                // minute
 
         try {
             commandsManager = new CommandsManager(this);

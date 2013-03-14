@@ -25,15 +25,16 @@ public class PluginPlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
+        Thread joinPayerThread = new Thread("JoinPayer") {
             @Override
             public void run() {
                 // check for open payouts
                 ArrayList<PayOutSave> payoutList = plugin.tempPayouts.get(player.getName());
                 List<PayOutSave> fromDataBase = plugin.getDatabase().find(PayOutSave.class).where().eq("playerName", player.getName()).findList();
                 if (fromDataBase != null && !fromDataBase.isEmpty()) {
-                    if (payoutList == null)
+                    if (payoutList == null) {
                         payoutList = new ArrayList<PayOutSave>();
+                    }
                     payoutList.addAll(fromDataBase);
                 }
 
@@ -47,6 +48,8 @@ public class PluginPlayerListener implements Listener {
                     plugin.tempPayouts.remove(player.getName());
                 }
             }
-        }, 5);
+        };
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, joinPayerThread, 5);
     }
 }
