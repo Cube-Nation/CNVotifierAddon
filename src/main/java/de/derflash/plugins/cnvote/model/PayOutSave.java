@@ -15,7 +15,6 @@ import com.avaje.ebean.validation.NotNull;
 @Entity()
 @Table(name = "cn_vote_payoutSave")
 public class PayOutSave {
-
     @Id
     private int id;
 

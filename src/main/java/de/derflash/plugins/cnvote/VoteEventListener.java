@@ -6,15 +6,13 @@ import org.bukkit.event.Listener;
 import com.vexsoftware.votifier.model.VotifierEvent;
 import com.vexsoftware.votifier.model.Vote;
 
-/**
- * Handle events for all Player related events
- */
-public class VoteEventListener implements Listener {
-    CNVotifierAddon plugin;
+import de.derflash.plugins.cnvote.services.VotesService;
 
-    VoteEventListener(CNVotifierAddon p) {
-        this.plugin = p;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+public class VoteEventListener implements Listener {
+    private VotesService votesService;
+
+    public VoteEventListener(VotesService votesService) {
+        this.votesService = votesService;
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -22,9 +20,8 @@ public class VoteEventListener implements Listener {
         Vote vote = event.getVote();
         String username = vote.getUsername();
 
-        plugin.countVote(username, vote.getServiceName(), vote.getAddress());
-        plugin.payPlayer(username, vote.getServiceName());
-        plugin.broadcastVote(username, vote.getServiceName());
-
+        votesService.countVote(username, vote.getServiceName(), vote.getAddress());
+        votesService.payPlayer(username, vote.getServiceName());
+        votesService.broadcastVote(username, vote.getServiceName());
     }
 }

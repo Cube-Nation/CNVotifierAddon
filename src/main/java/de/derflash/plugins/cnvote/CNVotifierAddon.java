@@ -1,19 +1,13 @@
 package de.derflash.plugins.cnvote;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.persistence.PersistenceException;
 
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import de.cubenation.plugins.utils.commandapi.CommandsManager;
@@ -25,48 +19,48 @@ import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
 import de.derflash.plugins.cnvote.services.ChatService;
 import de.derflash.plugins.cnvote.services.PermissionService;
+import de.derflash.plugins.cnvote.services.VotesService;
 import de.derflash.plugins.cnvote.wrapper.VaultWrapper;
 
 public class CNVotifierAddon extends JavaPlugin {
-    HashMap<String, ArrayList<PayOutSave>> tempPayouts = new HashMap<String, ArrayList<PayOutSave>>();
-
-    private HashMap<String, Date> lastVotes = new HashMap<String, Date>();
-    private ArrayList<Vote> tempVotes = new ArrayList<Vote>();
-
     private PermissionService permissionService;
     private CommandsManager commandsManager;
     private ChatService chatService;
+    private VotesService votesService;
 
     @Override
     public void onEnable() {
-        VaultWrapper.setLogger(getLogger());
-        permissionService = new PermissionService();
-        chatService = new ChatService();
-
         setupDatabase();
 
         saveDefaultConfig();
         reloadConfig();
 
-        new VoteEventListener(this);
-        new PluginPlayerListener(this);
+        VaultWrapper.setLogger(getLogger());
+        permissionService = new PermissionService();
+        chatService = new ChatService();
+        votesService = new VotesService(getDatabase(), chatService, getConfig(), getLogger());
+
+        getServer().getPluginManager().registerEvents(new VoteEventListener(votesService), this);
+        getServer().getPluginManager().registerEvents(new PluginPlayerListener(this, votesService), this);
 
         Thread voteSaverThread = new Thread("VoteSaver") {
             @Override
             public void run() {
-                saveVotes();
+                votesService.saveVotes();
             }
         };
         Thread lastVoteCleanerThread = new Thread("LastVoteCleaner") {
             @Override
             public void run() {
-                cleanLastVotes();
+                votesService.cleanLastVotes();
             }
         };
 
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, voteSaverThread, 12000L, 12000L);
-        getServer().getScheduler().runTaskTimer(this, lastVoteCleanerThread, 20 * 60, 20 * 60); // every
-                                                                                                // minute
+        // every 10 minutes
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, voteSaverThread, 20 * 60 * 10, 20 * 60 * 10);
+
+        // every minute
+        getServer().getScheduler().runTaskTimer(this, lastVoteCleanerThread, 20 * 60, 20 * 60);
 
         try {
             commandsManager = new CommandsManager(this);
@@ -87,21 +81,7 @@ public class CNVotifierAddon extends JavaPlugin {
     public void onDisable() {
         commandsManager.clear();
 
-        saveVotes();
-    }
-
-    private void saveVotes() {
-        if (!tempVotes.isEmpty()) {
-            getDatabase().save(tempVotes);
-        }
-        tempVotes.clear();
-
-        for (ArrayList<PayOutSave> tempPayoutArray : tempPayouts.values()) {
-            if (!tempPayoutArray.isEmpty()) {
-                getDatabase().save(tempPayoutArray);
-            }
-        }
-        tempPayouts.clear();
+        votesService.saveVotes();
     }
 
     private void setupDatabase() {
@@ -122,60 +102,6 @@ public class CNVotifierAddon extends JavaPlugin {
         return list;
     }
 
-    public void payPlayer(String username, String service) {
-        Player voter = getServer().getPlayerExact(username);
-        if (voter == null || !voter.isOnline()) {
-            PayOutSave tempPayout = new PayOutSave();
-            tempPayout.setPlayerName(username);
-            tempPayout.setTime(new Date());
-            tempPayout.setServiceName(service);
-
-            ArrayList<PayOutSave> payOutList = tempPayouts.get(username);
-            if (payOutList == null) {
-                payOutList = new ArrayList<PayOutSave>();
-            }
-            payOutList.add(tempPayout);
-
-            tempPayouts.put(username, payOutList);
-            return;
-        }
-
-        int amount = getConfig().getInt("reward_amount", 50);
-
-        if (voter.getWorld().getName().equalsIgnoreCase("pandora")) {
-            payEmeralds(voter, amount, service);
-        } else {
-            payMoney(voter, amount, service);
-        }
-
-    }
-
-    private void payEmeralds(Player voter, int amount, String service) {
-        voter.getInventory().addItem(new ItemStack(Material.EMERALD, amount));
-
-        chatService.showPayedIntoInventory(voter, service, amount);
-    }
-
-    private void payMoney(Player voter, int amount, String service) {
-        if (getServer().getPluginManager().getPlugin("Vault") != null) {
-            VaultWrapper.depositPlayer(voter.getName(), amount);
-        } else {
-            getLogger().warning("Coult not find Vault plugin, but economy is enabled. Please install Vault or disable economy.");
-            payEmeralds(voter, amount, service);
-        }
-
-        chatService.showPayedIntoBank(voter, service, amount);
-    }
-
-    public void countVote(String username, String service, String ip) {
-        Vote vote = new Vote();
-        vote.setPlayerName(username);
-        vote.setTime(new Date());
-        vote.setServiceName(service);
-        vote.setIp(ip);
-        tempVotes.add(vote);
-    }
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
@@ -185,33 +111,5 @@ public class CNVotifierAddon extends JavaPlugin {
             return false;
         }
         return true;
-    }
-
-    public void broadcastVote(String username, String serviceName) {
-        if (lastVotes.containsKey(username)) {
-            return;
-        }
-        lastVotes.put(username, new Date());
-
-        chatService.broadcastVote(username);
-    }
-
-    private void cleanLastVotes() {
-        Date old = new Date();
-        old.setTime(old.getTime() - 60000 * 10); // 10 minutes
-        ArrayList<String> toDelete = null;
-        for (Entry<String, Date> lv : lastVotes.entrySet()) {
-            if (lv.getValue().before(old)) {
-                if (toDelete == null) {
-                    toDelete = new ArrayList<String>();
-                }
-                toDelete.add(lv.getKey());
-            }
-        }
-        if (toDelete != null) {
-            for (String key : toDelete) {
-                lastVotes.remove(key);
-            }
-        }
     }
 }
