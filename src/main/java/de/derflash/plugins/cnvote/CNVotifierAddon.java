@@ -10,22 +10,25 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.CommandsManager;
 import de.cubenation.plugins.utils.commandapi.exception.CommandException;
 import de.cubenation.plugins.utils.commandapi.exception.CommandManagerException;
 import de.cubenation.plugins.utils.commandapi.exception.CommandWarmUpException;
+import de.cubenation.plugins.utils.permissionapi.PermissionService;
 import de.derflash.plugins.cnvote.commands.VoteTestCommand;
 import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
-import de.derflash.plugins.cnvote.services.ChatService;
-import de.derflash.plugins.cnvote.services.PermissionService;
 import de.derflash.plugins.cnvote.services.VotesService;
 import de.derflash.plugins.cnvote.wrapper.VaultWrapper;
 
 public class CNVotifierAddon extends JavaPlugin {
+    // framework services
+    private ChatService chatService;
     private PermissionService permissionService;
     private CommandsManager commandsManager;
-    private ChatService chatService;
+
+    // local services
     private VotesService votesService;
 
     @Override
@@ -35,9 +38,10 @@ public class CNVotifierAddon extends JavaPlugin {
         saveDefaultConfig();
         reloadConfig();
 
-        VaultWrapper.setLogger(getLogger());
         permissionService = new PermissionService();
-        chatService = new ChatService();
+        chatService = new ChatService(this);
+
+        VaultWrapper.setLogger(getLogger());
         votesService = new VotesService(getDatabase(), chatService, getConfig(), getLogger());
 
         getServer().getPluginManager().registerEvents(new VoteEventListener(votesService), this);

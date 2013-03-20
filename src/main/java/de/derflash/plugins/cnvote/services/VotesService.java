@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.avaje.ebean.EbeanServer;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
 import de.derflash.plugins.cnvote.wrapper.VaultWrapper;
@@ -102,7 +103,7 @@ public class VotesService {
     private void payEmeralds(Player voter, int amount, String service) {
         voter.getInventory().addItem(new ItemStack(Material.EMERALD, amount));
 
-        chatService.showPayedIntoInventory(voter, service, amount);
+        chatService.one(voter, "player.payedIntoInventory", service, amount);
     }
 
     private void payMoney(Player voter, int amount, String service) {
@@ -113,7 +114,7 @@ public class VotesService {
             payEmeralds(voter, amount, service);
         }
 
-        chatService.showPayedIntoBank(voter, service, amount);
+        chatService.one(voter, "player.payedIntoBank", service, amount);
     }
 
     public void countVote(String username, String service, String ip) {
@@ -131,7 +132,7 @@ public class VotesService {
         }
         lastVotes.put(username, new Date());
 
-        chatService.broadcastVote(username);
+        chatService.all("player.broadcastVote", username);
     }
 
     public void cleanLastVotes() {
