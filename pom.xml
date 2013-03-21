@@ -40,26 +40,6 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<includes>
-									<include>de.cubenation.plugins.utils:PluginUtils</include>
-								</includes>
-							</artifactSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -88,7 +68,7 @@
 		<dependency>
 			<groupId>de.cubenation.plugins.utils</groupId>
 			<artifactId>PluginUtils</artifactId>
-			<version>0.0.11</version>
+			<version>0.1.0</version>
 		</dependency>
 	</dependencies>
 </project>
