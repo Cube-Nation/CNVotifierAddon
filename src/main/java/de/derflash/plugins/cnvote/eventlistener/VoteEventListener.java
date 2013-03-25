@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnvote;
+package de.derflash.plugins.cnvote.eventlistener;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

@@ -17,6 +17,8 @@ import de.cubenation.plugins.utils.commandapi.exception.CommandManagerException;
 import de.cubenation.plugins.utils.commandapi.exception.CommandWarmUpException;
 import de.cubenation.plugins.utils.permissionapi.PermissionService;
 import de.derflash.plugins.cnvote.commands.VoteTestCommand;
+import de.derflash.plugins.cnvote.eventlistener.PluginPlayerListener;
+import de.derflash.plugins.cnvote.eventlistener.VoteEventListener;
 import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
 import de.derflash.plugins.cnvote.services.VotesService;
