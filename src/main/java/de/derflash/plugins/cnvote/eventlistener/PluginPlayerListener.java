@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnvote;
+package de.derflash.plugins.cnvote.eventlistener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -6,16 +6,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import de.derflash.plugins.cnvote.CNVotifierAddon;
 import de.derflash.plugins.cnvote.services.VotesService;
 
 /**
  * Handle events for all Player related events
  */
 public class PluginPlayerListener implements Listener {
-    CNVotifierAddon plugin;
-    VotesService votesService;
+    private CNVotifierAddon plugin;
+    private VotesService votesService;
 
-    PluginPlayerListener(CNVotifierAddon plugin, VotesService votesService) {
+    public PluginPlayerListener(CNVotifierAddon plugin, VotesService votesService) {
         this.plugin = plugin;
         this.votesService = votesService;
     }

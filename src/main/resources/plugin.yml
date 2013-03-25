@@ -9,9 +9,10 @@ version: '${project.version}'
 
 depend:
   - Votifier
+  - PluginUtils
+
 softdepend:
   - Vault
-  - PermissionsEx
 
 commands:
     cnvote:
