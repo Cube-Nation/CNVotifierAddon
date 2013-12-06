@@ -8,11 +8,7 @@ url: http://www.cube-nation.de/
 version: '${project.version}'
 
 depend:
-  - Votifier
   - PluginUtils
-
-softdepend:
-  - Vault
 
 commands:
     cnvote:

@@ -16,9 +16,10 @@ import org.bukkit.inventory.ItemStack;
 import com.avaje.ebean.EbeanServer;
 
 import de.cubenation.plugins.utils.chatapi.ChatService;
+import de.cubenation.plugins.utils.wrapperapi.VaultWrapper;
+import de.cubenation.plugins.utils.wrapperapi.WrapperManager;
 import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
-import de.derflash.plugins.cnvote.wrapper.VaultWrapper;
 
 public class VotesService {
     private EbeanServer dbConnection;
@@ -107,8 +108,8 @@ public class VotesService {
     }
 
     private void payMoney(Player voter, int amount, String service) {
-        if (Bukkit.getServer().getPluginManager().getPlugin("Vault") != null) {
-            VaultWrapper.depositPlayer(voter.getName(), amount);
+        if (WrapperManager.isPluginEnabled(WrapperManager.Plugins.VAULT)) {
+            VaultWrapper.getService().depositPlayer(voter.getName(), amount);
         } else {
             log.warning("Coult not find Vault plugin, but economy is enabled. Please install Vault or disable economy.");
             payEmeralds(voter, amount, service);
