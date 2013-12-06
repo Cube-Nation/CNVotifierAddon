@@ -1,54 +1,36 @@
 package de.derflash.plugins.cnvote;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
-import javax.persistence.PersistenceException;
+import org.bukkit.event.Listener;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import de.cubenation.plugins.utils.chatapi.ChatService;
-import de.cubenation.plugins.utils.commandapi.CommandsManager;
-import de.cubenation.plugins.utils.commandapi.exception.CommandException;
-import de.cubenation.plugins.utils.commandapi.exception.CommandManagerException;
-import de.cubenation.plugins.utils.commandapi.exception.CommandWarmUpException;
-import de.cubenation.plugins.utils.permissionapi.PermissionService;
+import de.cubenation.plugins.utils.pluginapi.BasePlugin;
+import de.cubenation.plugins.utils.pluginapi.CommandSet;
+import de.cubenation.plugins.utils.pluginapi.ScheduleTask;
 import de.derflash.plugins.cnvote.commands.VoteTestCommand;
 import de.derflash.plugins.cnvote.eventlistener.PluginPlayerListener;
 import de.derflash.plugins.cnvote.eventlistener.VoteEventListener;
 import de.derflash.plugins.cnvote.model.PayOutSave;
 import de.derflash.plugins.cnvote.model.Vote;
 import de.derflash.plugins.cnvote.services.VotesService;
-import de.derflash.plugins.cnvote.wrapper.VaultWrapper;
 
-public class CNVotifierAddon extends JavaPlugin {
-    // framework services
-    private ChatService chatService;
-    private PermissionService permissionService;
-    private CommandsManager commandsManager;
-
+public class CNVotifierAddon extends BasePlugin {
     // local services
     private VotesService votesService;
 
     @Override
-    public void onEnable() {
-        setupDatabase();
-
-        saveDefaultConfig();
-        reloadConfig();
-
-        permissionService = new PermissionService();
-        chatService = new ChatService(this);
-
-        VaultWrapper.setLogger(getLogger());
+    protected void initialCustomServices() {
         votesService = new VotesService(getDatabase(), chatService, getConfig(), getLogger());
+    }
 
-        getServer().getPluginManager().registerEvents(new VoteEventListener(votesService), this);
-        getServer().getPluginManager().registerEvents(new PluginPlayerListener(this, votesService), this);
+    @Override
+    protected void registerCustomEventListeners(List<Listener> list) {
+        list.add(new VoteEventListener(votesService));
+        list.add(new PluginPlayerListener(this, votesService));
+    }
 
+    @Override
+    protected void registerScheduledTasks(List<ScheduleTask> list) {
         Thread voteSaverThread = new Thread("VoteSaver") {
             @Override
             public void run() {
@@ -63,64 +45,25 @@ public class CNVotifierAddon extends JavaPlugin {
         };
 
         // every 10 minutes
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, voteSaverThread, 20 * 60 * 10, 20 * 60 * 10);
+        list.add(new ScheduleTask(voteSaverThread, 20 * 60 * 10, 20 * 60 * 10));
 
         // every minute
-        getServer().getScheduler().runTaskTimer(this, lastVoteCleanerThread, 20 * 60, 20 * 60);
-
-        try {
-            commandsManager = new CommandsManager(this);
-            commandsManager.setPermissionInterface(permissionService);
-            registerCommands();
-        } catch (CommandWarmUpException e) {
-            getLogger().log(Level.SEVERE, "error on register command", e);
-        } catch (CommandManagerException e) {
-            getLogger().log(Level.SEVERE, "error on inital command manager", e);
-        }
-    }
-
-    private void registerCommands() throws CommandWarmUpException {
-        commandsManager.add(VoteTestCommand.class);
+        list.add(new ScheduleTask(lastVoteCleanerThread, 20 * 60, 20 * 60));
     }
 
     @Override
-    public void onDisable() {
-        commandsManager.clear();
+    protected void registerCommands(List<CommandSet> list) {
+        list.add(new CommandSet(VoteTestCommand.class));
+    }
 
+    @Override
+    protected void stopCustomServices() {
         votesService.saveVotes();
     }
 
-    private void setupDatabase() {
-        try {
-            getDatabase().find(Vote.class).findRowCount();
-            getDatabase().find(PayOutSave.class).findRowCount();
-        } catch (PersistenceException ex) {
-            getLogger().info("Installing database due to first time usage");
-            installDDL();
-        }
-    }
-
     @Override
-    public List<Class<?>> getDatabaseClasses() {
-        List<Class<?>> list = new ArrayList<Class<?>>();
+    protected void registerDatabaseModel(List<Class<?>> list) {
         list.add(Vote.class);
         list.add(PayOutSave.class);
-        return list;
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        try {
-            commandsManager.execute(sender, command, label, args);
-        } catch (CommandException e) {
-            getLogger().log(Level.SEVERE, "error on command", e);
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return commandsManager.getTabCompleteList(sender, command, alias, args);
     }
 }
