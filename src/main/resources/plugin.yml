@@ -9,6 +9,7 @@ version: '${project.version}'
 
 depend:
   - PluginUtils
+  - Votifier
 
 commands:
     cnvote:
