@@ -108,7 +108,7 @@ public class VotesService {
     }
 
     private void payMoney(Player voter, int amount, String service) {
-        if (WrapperManager.isPluginEnabled(WrapperManager.Plugins.VAULT)) {
+        if (WrapperManager.isPluginEnabled(WrapperManager.PLUGIN_NAME_VAULT)) {
             VaultWrapper.getService().depositPlayer(voter.getName(), amount);
         } else {
             log.warning("Coult not find Vault plugin, but economy is enabled. Please install Vault or disable economy.");
