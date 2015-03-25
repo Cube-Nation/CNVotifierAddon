@@ -2,12 +2,11 @@ package de.derflash.plugins.cnvote;
 
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 
 import de.cubenation.plugins.utils.pluginapi.BasePlugin;
-import de.cubenation.plugins.utils.pluginapi.CommandSet;
 import de.cubenation.plugins.utils.pluginapi.ScheduleTask;
-import de.derflash.plugins.cnvote.commands.VoteTestCommand;
 import de.derflash.plugins.cnvote.eventlistener.PluginPlayerListener;
 import de.derflash.plugins.cnvote.eventlistener.VoteEventListener;
 import de.derflash.plugins.cnvote.model.PayOutSave;
@@ -21,6 +20,8 @@ public class CNVotifierAddon extends BasePlugin {
     @Override
     protected void initialCustomServices() {
         votesService = new VotesService(getDatabase(), chatService, getConfig(), getLogger());
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new VoteEventListener(votesService));
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "Bungeefier", new VoteEventListener(votesService));
     }
 
     @Override
@@ -49,11 +50,6 @@ public class CNVotifierAddon extends BasePlugin {
 
         // every minute
         list.add(new ScheduleTask(lastVoteCleanerThread, 20 * 60, 20 * 60));
-    }
-
-    @Override
-    protected void registerCommands(List<CommandSet> list) {
-        list.add(new CommandSet(VoteTestCommand.class));
     }
 
     @Override

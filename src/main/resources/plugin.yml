@@ -9,12 +9,6 @@ version: '${project.version}'
 
 depend:
   - PluginUtils
-  - Votifier
-
-commands:
-    cnvote:
-        description: Test vote
-        usage: /cnvote test
 
 permissions:
   cnvotifieraddon.admin:
